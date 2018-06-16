@@ -18,11 +18,15 @@ limitations under the License.
 <html>
   <head>
     <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.cyan-teal.min.css" />
+    <link href="node_modules/c3/c3.css" rel="stylesheet">
+
   </head>
   <body>
     <h3>TensorFlow.js: Train MNIST with the Core API</h3>
     <p>Open your browser console</p>
     <style>
+
+      /*-------------------------------------*/
       canvas {
         width: 100px;
       }
@@ -42,10 +46,11 @@ limitations under the License.
         margin: 10px;
       }
     </style>
-
+    <div id="chart_0"></div>
     <div id="status">Loading data...</div>
     <div id="message"></div>
     <div id="images"></div>
+
     <script src="index.js"></script>
   </body>
 </html>

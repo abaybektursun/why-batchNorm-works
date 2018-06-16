@@ -19,6 +19,8 @@ import * as tf from '@tensorflow/tfjs';
 
 import {MnistData} from './data';
 
+import * as vis from "./visual";
+
 // Hyperparameters.
 const LEARNING_RATE = .1;
 const BATCH_SIZE = 64;
@@ -33,6 +35,10 @@ const optimizer = tf.train.sgd(LEARNING_RATE);
 const conv1OutputDepth = 8;
 const conv1Weights =
     tf.variable(tf.randomNormal([5, 5, 1, conv1OutputDepth], 0, 0.1));
+
+const BN1_Weights =
+    tf.variable(tf.randomNormal([5, 5, 1, conv1OutputDepth], 0, 0.1));
+
 
 const conv2InputDepth = conv1OutputDepth;
 const conv2OutputDepth = 16;
@@ -49,7 +55,7 @@ function loss(labels, ys) {
   return tf.losses.softmaxCrossEntropy(labels, ys).mean();
 }
 
-// Our actual model
+// CNN
 function model(inputXs) {
   const xs = inputXs.as4D(-1, IMAGE_SIZE, IMAGE_SIZE, 1);
 
@@ -76,8 +82,35 @@ function model(inputXs) {
       .add(fullyConnectedBias);
 }
 
+// CNN with BatchNorm
+const model_BN = tf.sequential();
+model_BN.add(tf.layers.conv2d({
+  inputShape: [28, 28, 1],
+  kernelSize: 5,
+  filters: 8,
+  strides: 1,
+  activation: 'relu',
+  kernelInitializer: 'varianceScaling'
+}));
+model_BN.add(tf.layers.batchNormalization({}));
+model_BN.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));
+model_BN.add(tf.layers.conv2d({
+  kernelSize: 5,
+  filters: 16,
+  strides: 1,
+  activation: 'relu',
+  kernelInitializer: 'varianceScaling'
+}));
+model_BN.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));
+model_BN.add(tf.layers.flatten());
+model_BN.add(tf.layers.dense(
+    {units: 10, kernelInitializer: 'varianceScaling', activation: 'softmax'}));
+
+
+
 // Train the model.
 export async function train(data, log) {
+  var losses = ['CNN Loss'];
   const returnCost = true;
 
   for (let i = 0; i < TRAIN_STEPS; i++) {
@@ -86,7 +119,69 @@ export async function train(data, log) {
       return loss(batch.labels, model(batch.xs));
     }, returnCost);
 
+    losses.push(cost.dataSync());
     log(`loss[${i}]: ${cost.dataSync()}`);
+
+    vis.chart.load({
+        columns: [
+            losses
+        ]
+    });
+
+    await tf.nextFrame();
+  }
+}
+
+// Train the model with BN
+export async function train_BN(data, log) {
+  var losses = ['CNN with BatchNorm Loss'];
+  var accuracyValues = ['CNN with BatchNorm Accuracy'];
+
+  const optimizer = tf.train.sgd(LEARNING_RATE);
+  model_BN.compile({
+    optimizer: optimizer,
+    loss: 'categoricalCrossentropy',
+    metrics: ['accuracy'],
+  });
+  const TRAIN_BATCHES = 150;
+  const TEST_BATCH_SIZE = 1000;
+  const TEST_ITERATION_FREQUENCY = 5;
+
+  // Iteratively train our model on mini-batches of data.
+  for (let i = 0; i < TRAIN_STEPS; i++) {
+   const [batch, validationData] = tf.tidy(() => {
+     const batch = data.nextTrainBatch(BATCH_SIZE);
+     batch.xs = batch.xs.reshape([BATCH_SIZE, 28, 28, 1]);
+
+     let validationData;
+     // Every few batches test the accuracy of the model.
+     if (i % TEST_ITERATION_FREQUENCY === 0) {
+       const testBatch = data.nextTestBatch(TEST_BATCH_SIZE);
+       validationData = [
+         // Reshape the training data from [64, 28x28] to [64, 28, 28, 1] so
+         // that we can feed it to our convolutional neural net.
+         testBatch.xs.reshape([TEST_BATCH_SIZE, 28, 28, 1]), testBatch.labels
+       ];
+     }
+     return [batch, validationData];
+   });
+
+   const history = await model_BN.fit(
+        batch.xs, batch.labels,
+        {batchSize: BATCH_SIZE, validationData, epochs: 1}
+    );
+
+    const loss = history.history.loss[0];
+    const accuracy = history.history.acc[0];
+
+    losses.push(loss);
+    vis.chart.load({
+        columns: [
+            losses
+        ]
+    });
+
+    tf.dispose([batch, validationData]);
 
     await tf.nextFrame();
   }

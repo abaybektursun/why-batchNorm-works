@@ -19,6 +19,8 @@ import {MnistData} from './data';
 import * as model from './model';
 import * as ui from './ui';
 
+
+
 let data;
 async function load() {
   data = new MnistData();
@@ -28,6 +30,11 @@ async function load() {
 async function train() {
   ui.isTraining();
   await model.train(data, ui.trainingLog);
+}
+
+async function train_BN() {
+  ui.isTraining();
+  await model.train_BN(data, ui.trainingLog);
 }
 
 async function test() {
@@ -42,6 +49,7 @@ async function test() {
 async function mnist() {
   await load();
   await train();
+  await train_BN();
   test();
 }
 mnist();

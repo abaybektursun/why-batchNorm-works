@@ -43,7 +43,6 @@ function create_model(){
     filters: 8,
     strides: 1,
     activation: 'relu',
-    kernelInitializer: 'varianceScaling'
   }));
   model.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));
   model.add(tf.layers.conv2d({
@@ -51,12 +50,11 @@ function create_model(){
     filters: 16,
     strides: 1,
     activation: 'relu',
-    kernelInitializer: 'varianceScaling'
   }));
   model.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));
   model.add(tf.layers.flatten());
   model.add(tf.layers.dense(
-      {units: 10, kernelInitializer: 'varianceScaling', activation: 'softmax'}
+      {units: 10, activation: 'softmax'}
   ));
 
   return model;
@@ -64,7 +62,6 @@ function create_model(){
 
 // CNN with BatchNorm
 function create_model_BN(){
-
   const model = tf.sequential();
   model.add(tf.layers.conv2d({
     inputShape: [IMAGE_SIZE, IMAGE_SIZE, 1],
@@ -72,7 +69,6 @@ function create_model_BN(){
     filters: 8,
     strides: 1,
     activation: 'relu',
-    kernelInitializer: 'varianceScaling'
   }));
   model.add(tf.layers.batchNormalization({}));
   model.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));
@@ -81,12 +77,12 @@ function create_model_BN(){
     filters: 16,
     strides: 1,
     activation: 'relu',
-    kernelInitializer: 'varianceScaling'
   }));
+  model.add(tf.layers.batchNormalization({}));
   model.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));
   model.add(tf.layers.flatten());
   model.add(tf.layers.dense(
-      {units: 10, kernelInitializer: 'varianceScaling', activation: 'softmax'}));
+      {units: 10,  activation: 'softmax'}));
 
   return model;
 }
@@ -101,7 +97,6 @@ function create_model_BN_noise(){
     filters: 8,
     strides: 1,
     activation: 'relu',
-    kernelInitializer: 'varianceScaling'
   }));
   model.add(tf.layers.batchNormalization({}));
   model.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));
@@ -110,12 +105,12 @@ function create_model_BN_noise(){
     filters: 16,
     strides: 1,
     activation: 'relu',
-    kernelInitializer: 'varianceScaling'
   }));
+  model.add(tf.layers.batchNormalization({}));
   model.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));
   model.add(tf.layers.flatten());
   model.add(tf.layers.dense(
-      {units: 10, kernelInitializer: 'varianceScaling', activation: 'softmax'}));
+      {units: 10, activation: 'softmax'}));
 
   return model;
 }

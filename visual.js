@@ -8,7 +8,7 @@ let chart_losses_0 = c3.generate({
     data: {
       empty: {
         label: {
-          text: "Training has not started"
+          text: "Test Set Losses"
         }
       },
       columns: []
@@ -20,7 +20,7 @@ let chart_accuracy_0 = c3.generate({
     data: {
       empty: {
         label: {
-          text: "Training has not started"
+          text: "Test Set Accuracies"
         }
       },
       columns: []

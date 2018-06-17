@@ -30,8 +30,10 @@ async function test() {
 
 async function mnist() {
   await load();
-  await train(undefined, '0');
-  await train_BN(undefined, '0');
+  await train(0.1, '0');
+  await train_BN(0.1, '0');
+  await train(0.55, '0');
+  await train_BN(0.55, '0');
   //test();
 }
 mnist();

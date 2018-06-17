@@ -22,7 +22,7 @@ import {MnistData} from './data';
 import * as vis from "./visual";
 
 // Hyperparameters.
-const BATCH_SIZE = 64;
+const BATCH_SIZE = 32;
 const TRAIN_STEPS = 100;
 
 // Data constants.
@@ -91,13 +91,51 @@ function create_model_BN(){
   return model;
 }
 
+// CNN + BatchNorm + Noise
+function create_model_BN_noise(){
+
+  const model = tf.sequential();
+  model.add(tf.layers.conv2d({
+    inputShape: [IMAGE_SIZE, IMAGE_SIZE, 1],
+    kernelSize: 5,
+    filters: 8,
+    strides: 1,
+    activation: 'relu',
+    kernelInitializer: 'varianceScaling'
+  }));
+  model.add(tf.layers.batchNormalization({}));
+  model.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));
+  model.add(tf.layers.conv2d({
+    kernelSize: 5,
+    filters: 16,
+    strides: 1,
+    activation: 'relu',
+    kernelInitializer: 'varianceScaling'
+  }));
+  model.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));
+  model.add(tf.layers.flatten());
+  model.add(tf.layers.dense(
+      {units: 10, kernelInitializer: 'varianceScaling', activation: 'softmax'}));
+
+  return model;
+}
+
+/*-----------------------------------------------------------------------------------------------*/
 /*-----------------------------------------------------------------------------------------------*/
 
 // Train the CNN model (No BN)
-export async function train(data, log, LEARNING_RATE) {
+export async function train(data, log, LEARNING_RATE, chart_id) {
   let model = create_model();
-  var losses = ['CNN Loss (LR: ' + LEARNING_RATE + ')'];
-  var accuracyValues = ['CNN Accuracy (LR: ' + LEARNING_RATE + ')'];
+
+  let col_losses = 'CNN Loss (LR: ' + LEARNING_RATE + ')'
+  let col_accs = 'CNN Accuracy (LR: ' + LEARNING_RATE + ')'
+  if (LEARNING_RATE === undefined){
+    LEARNING_RATE = 0.1
+    col_losses =  'CNN Loss'
+    col_accs = 'CNN Accuracy'
+  }
+  var losses = [col_losses];
+  var accuracies = [col_accs];
 
   const optimizer = tf.train.sgd(LEARNING_RATE);
   model.compile({
@@ -134,9 +172,15 @@ export async function train(data, log, LEARNING_RATE) {
     const accuracy = history.history.acc[0];
 
     losses.push(loss);
-    vis.chart.load({
+    accuracies.push(accuracy);
+    vis['chart_losses_'+chart_id].load({
         columns: [
             losses
+        ]
+    });
+    vis['chart_accuracy_'+chart_id].load({
+        columns: [
+            accuracies
         ]
     });
 
@@ -148,10 +192,18 @@ export async function train(data, log, LEARNING_RATE) {
 
 
 // Train the model with BN
-export async function train_BN(data, log, LEARNING_RATE) {
+export async function train_BN(data, log, LEARNING_RATE, chart_id) {
   let model = create_model_BN();
-  var losses = ['CNN with BatchNorm Loss (LR: ' + LEARNING_RATE + ')'];
-  var accuracyValues = ['CNN with BatchNorm Accuracy (LR: ' + LEARNING_RATE + ')'];
+
+  let col_losses = 'CNN + BatchNorm Loss (LR: ' + LEARNING_RATE + ')'
+  let col_accs = 'CNN + BatchNorm Accuracy (LR: ' + LEARNING_RATE + ')'
+  if (LEARNING_RATE === undefined){
+    LEARNING_RATE = 0.1
+    col_losses =  'CNN + BatchNorm Loss'
+    col_accs = 'CNN + BatchNorm Accuracy'
+  }
+  var losses = [col_losses];
+  var accuracies = [col_accs];
 
   const optimizer = tf.train.sgd(LEARNING_RATE);
   model.compile({
@@ -188,9 +240,15 @@ export async function train_BN(data, log, LEARNING_RATE) {
     const accuracy = history.history.acc[0];
 
     losses.push(loss);
-    vis.chart.load({
+    accuracies.push(accuracy);
+    vis['chart_losses_'+chart_id].load({
         columns: [
             losses
+        ]
+    });
+    vis['chart_accuracy_'+chart_id].load({
+        columns: [
+            accuracies
         ]
     });
 

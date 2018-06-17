@@ -1,20 +1,3 @@
-/**
- * @license
- * Copyright 2018 Google LLC. All Rights Reserved.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * =============================================================================
- */
-
 import {MnistData} from './data';
 import * as model from './model';
 import * as ui from './ui';
@@ -26,14 +9,14 @@ async function load() {
   await data.load();
 }
 
-async function train(LEARNING_RATE) {
+async function train(LEARNING_RATE, chart_id) {
   ui.isTraining();
-  await model.train(data, ui.trainingLog, LEARNING_RATE);
+  await model.train(data, ui.trainingLog, LEARNING_RATE, chart_id);
 }
 
-async function train_BN(LEARNING_RATE) {
+async function train_BN(LEARNING_RATE, chart_id) {
   ui.isTraining();
-  await model.train_BN(data, ui.trainingLog, LEARNING_RATE);
+  await model.train_BN(data, ui.trainingLog, LEARNING_RATE, chart_id);
 }
 
 async function test() {
@@ -47,10 +30,8 @@ async function test() {
 
 async function mnist() {
   await load();
-  await train(0.1);
-  await train_BN(0.1);
-  await train(0.5);
-  await train_BN(0.5);
+  await train(undefined, '0');
+  await train_BN(undefined, '0');
   //test();
 }
 mnist();

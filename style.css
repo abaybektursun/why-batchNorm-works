@@ -3,3 +3,49 @@ canvas {
 		-webkit-user-select: none;
 		-ms-user-select: none;
 }
+
+.btn-rand {
+  color: #616161;
+  background-color: #F2F2F2;
+  border-color: #F2F2F2;
+}
+
+.btn-rand:hover,
+.btn-rand:focus,
+.btn-rand:active,
+.btn-rand.active,
+.open .dropdown-toggle.btn-rand {
+  color: #616161;
+  background-color: #EDEDED;
+  border-color: #F2F2F2;
+}
+
+.btn-rand:active,
+.btn-rand.active,
+.open .dropdown-toggle.btn-rand {
+  background-image: none;
+}
+
+.btn-rand.disabled,
+.btn-rand[disabled],
+fieldset[disabled] .btn-rand,
+.btn-rand.disabled:hover,
+.btn-rand[disabled]:hover,
+fieldset[disabled] .btn-rand:hover,
+.btn-rand.disabled:focus,
+.btn-rand[disabled]:focus,
+fieldset[disabled] .btn-rand:focus,
+.btn-rand.disabled:active,
+.btn-rand[disabled]:active,
+fieldset[disabled] .btn-rand:active,
+.btn-rand.disabled.active,
+.btn-rand[disabled].active,
+fieldset[disabled] .btn-rand.active {
+  background-color: #F2F2F2;
+  border-color: #F2F2F2;
+}
+
+.btn-rand .badge {
+  color: #F2F2F2;
+  background-color: #616161;
+}

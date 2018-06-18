@@ -92,16 +92,16 @@ window.onload = function() {
 document.getElementById('randomizeData').addEventListener('click', function() {
 
   // Radmonize the Data
-		scatterChartData.datasets[0].data = scatterChartData.datasets[0].data.map(function() {
-			return {
-				x: randomScalingFactorX(),
-				y: randomScalingFactorY()
-			};
-		});
+	scatterChartData.datasets[0].data = scatterChartData.datasets[0].data.map(function() {
+		return {
+			x: randomScalingFactorX(),
+			y: randomScalingFactorY()
+		};
+	});
 
   window.myScatter.options.title.text = 'Random Data';
-  //window.myScatter.options.gridLines.lineWidth = 2;
 	window.myScatter.update();
+
 });
 
 // Subtract Mean

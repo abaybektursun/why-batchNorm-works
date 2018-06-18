@@ -2,24 +2,48 @@
   <head>
     <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.cyan-teal.min.css" />
     <link href="node_modules/c3/c3.css" rel="stylesheet">
-
+    <link href="style.css" rel="stylesheet">
+    <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.min.css">
 
   </head>
   <body>
-    <div style='float: left; width: 45%' id="chart_losses_0"></div>
-    <div style='float: right; width: 45%' id="chart_accuracy_0"></div>
-    <p>
-    <div id="status">Loading data...</div>
-    <div id="message"></div>
-
 
     <div style="width:75%">
 		    <canvas id="canvas"></canvas>
+        <div style="padding: 9px">
+          <button id="randomizeData" class="btn btn-block btn-rand">Randomize the Data Points</button>
+        </div>
+        <div class="row">
+          <div class="col-sm-6">
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title">Subtract the mean</h5>
+                <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+                <button id="subMean" class="btn btn-default btn-block">Center</button>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title">Normalize the Variance</h5>
+                <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+                <button id="normVar" class="btn btn-default btn-block">Normalize</button>
+              </div>
+            </div>
+          </div>
+        </div>
 	  </div>
 
-    <button id="randomizeData">Randomize</button>
-    <button id="subMean">Subtract Mean</button>
-    <button id="normVar">Normalize Variance</button>
+    <button id="train0" class="btn">Train</button>
+    <div id="status">Loading data...</div>
+    <div id="message"></div>
+    <div>
+      <div style='float: left; width: 45%' id="chart_losses_0"></div>
+      <div style='float: right; width: 45%' id="chart_accuracy_0"></div>
+    </div>
+
+    <p>
 
     <script src="index.js"></script>
   </body>

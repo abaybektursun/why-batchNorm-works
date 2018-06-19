@@ -2,20 +2,22 @@ import {MnistData} from './data';
 import * as model from './model';
 import * as ui from './ui';
 
+var $ = require('jquery');
 
 let data;
-async function load() {
+async function load(chart_id) {
+  ui.isLoading(chart_id);
   data = new MnistData();
   await data.load();
 }
 
 async function train(LEARNING_RATE, chart_id) {
-  ui.isTraining();
+  ui.isTraining(chart_id);
   await model.train(data, ui.trainingLog, LEARNING_RATE, chart_id);
 }
 
 async function train_BN(LEARNING_RATE, chart_id) {
-  ui.isTraining();
+  ui.isTraining(chart_id);
   await model.train_BN(data, ui.trainingLog, LEARNING_RATE, chart_id);
 }
 
@@ -29,12 +31,14 @@ async function test() {
 }
 
 async function mnist() {
-  await load();
+  await load('0');
   await train(0.1, '0');
   await train_BN(0.1, '0');
   await train(0.55, '0');
   await train_BN(0.55, '0');
-  //test();
+
+  $('#train'+'0').prop('disabled', false);
+  $('#train'+'0').text('Done. Train Again?');
 }
 
 

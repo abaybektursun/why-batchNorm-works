@@ -7,18 +7,18 @@ import {MnistData} from './data';
 import * as vis from "./visual";
 
 import * as model_BN from "./BN_model"
+import * as model_CNN from "./CNN_model"
 
-// Hyperparameters.
-const BATCH_SIZE = 32;
-const TRAIN_STEPS = 100;
+import * as hparam from "./hyperParams"
 
-// Data constants.
-const IMAGE_SIZE = 28;
-const LABELS_SIZE = 10;
+const BATCH_SIZE = hparam.BATCH_SIZE
+const TRAIN_STEPS = hparam.TRAIN_STEPS
+const IMAGE_SIZE = hparam.IMAGE_SIZE
+const LABELS_SIZE = hparam.LABELS_SIZE
+const TRAIN_BATCHES = hparam.TRAIN_BATCHES
+const TEST_BATCH_SIZE = hparam.TEST_BATCH_SIZE
+const TEST_ITERATION_FREQUENCY = hparam.TEST_ITERATION_FREQUENCY
 
-const TRAIN_BATCHES = 150;
-const TEST_BATCH_SIZE = 1000;
-const TEST_ITERATION_FREQUENCY = 5;
 
 
 /***************************************** Custom Noise Layer *****************************************/
@@ -46,7 +46,11 @@ serialization.SerializationMap.register(Noise);*/
 /*******************************************************************************************/
 
 /*--------------------------------------------------------------------------------*/
+
+
+/*-----------------------------------------------------------------------------------------------*/
 // CNN
+/*
 function create_model(){
   const model = tf.sequential();
   model.add(tf.layers.conv2d({
@@ -97,43 +101,13 @@ function create_model_BN(){
       {units: 10,  activation: 'softmax'}));
 
   return model;
-}
-
-// CNN + BatchNorm + Noise
-function create_model_BN_noise(){
-
-  const model = tf.sequential();
-  model.add(tf.layers.conv2d({
-    inputShape: [IMAGE_SIZE, IMAGE_SIZE, 1],
-    kernelSize: 5,
-    filters: 8,
-    strides: 1,
-    activation: 'relu',
-  }));
-  model.add(tf.layers.batchNormalization({}));
-  model.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));
-  model.add(tf.layers.conv2d({
-    kernelSize: 5,
-    filters: 16,
-    strides: 1,
-    activation: 'relu',
-  }));
-  model.add(tf.layers.batchNormalization({}));
-  model.add(tf.layers.maxPooling2d({poolSize: [2, 2], strides: [2, 2]}));
-  model.add(tf.layers.flatten());
-  model.add(tf.layers.dense(
-      {units: 10, activation: 'softmax'}));
-
-  return model;
-}
-
-/*-----------------------------------------------------------------------------------------------*/
+}*
+/
 /*-----------------------------------------------------------------------------------------------*/
 
 // Train the CNN model (No BN)
 export async function train(data, log, LEARNING_RATE, chart_id) {
-  let model = create_model();
-
+  model_CNN.freshParams();
   let col_losses = 'CNN Loss (LR: ' + LEARNING_RATE + ')'
   let col_accs = 'CNN Accuracy (LR: ' + LEARNING_RATE + ')'
   if (LEARNING_RATE === undefined){
@@ -145,11 +119,6 @@ export async function train(data, log, LEARNING_RATE, chart_id) {
   var accuracies = [col_accs];
 
   const optimizer = tf.train.sgd(LEARNING_RATE);
-  model.compile({
-    optimizer: optimizer,
-    loss: 'categoricalCrossentropy',
-    metrics: ['accuracy'],
-  });
 
   // Iteratively train our model on mini-batches of data.
   for (let i = 0; i < TRAIN_STEPS; i++) {
@@ -161,38 +130,43 @@ export async function train(data, log, LEARNING_RATE, chart_id) {
      // Every few batches test the accuracy of the model.
      if (i % TEST_ITERATION_FREQUENCY === 0) {
        const testBatch = data.nextTestBatch(TEST_BATCH_SIZE);
-       validationData = [
-         // Reshape the training data from [64, 28x28] to [64, 28, 28, 1] so
-         // that we can feed it to our convolutional neural net.
-         testBatch.xs.reshape([TEST_BATCH_SIZE, IMAGE_SIZE, IMAGE_SIZE, 1]), testBatch.labels
-       ];
+       validationData = {
+         xs: testBatch.xs.reshape([TEST_BATCH_SIZE, IMAGE_SIZE, IMAGE_SIZE, 1]),
+         labels: testBatch.labels
+       };
      }
      return [batch, validationData];
    });
 
-   const history = await model.fit(
-        batch.xs, batch.labels,
-        {batchSize: BATCH_SIZE, validationData, epochs: 1}
-    );
+    // Core Version Optimization
+    const returnCost = true;
+    const cost = optimizer.minimize(() => {
+      return model_CNN.loss(batch.labels, model_CNN.model(batch.xs));
+    }, returnCost);
 
-    const loss = history.history.loss[0];
-    const accuracy = history.history.acc[0];
 
-    losses.push(loss);
-    accuracies.push(accuracy);
-    vis['chart_losses_'+chart_id].load({
-        columns: [
-            losses
-        ]
-    });
-    vis['chart_accuracy_'+chart_id].load({
-        columns: [
-            accuracies
-        ]
-    });
+     if (validationData != null) {
+      /* Plot and test curves*/
+      const testPred = model_CNN.predict(validationData.xs)
+      const loss = model_CNN.loss(validationData.labels, testPred).dataSync();
+      const accuracy = tf.metrics.categoricalAccuracy(validationData.labels, testPred).sum().dataSync()/TEST_BATCH_SIZE;
+
+      losses.push(loss);
+      accuracies.push(accuracy)
+
+      vis['chart_losses_'+chart_id].load({
+          columns: [
+              losses
+          ]
+      });
+      vis['chart_accuracy_'+chart_id].load({
+          columns: [
+              accuracies
+          ]
+      });
+    }
 
     tf.dispose([batch, validationData]);
-
     await tf.nextFrame();
   }
 }
@@ -200,8 +174,7 @@ export async function train(data, log, LEARNING_RATE, chart_id) {
 
 // Train the model with BN
 export async function train_BN(data, log, LEARNING_RATE, chart_id) {
-  let model = create_model_BN();
-
+  model_BN.freshParams()
   let col_losses = 'CNN + BatchNorm Loss (LR: ' + LEARNING_RATE + ')'
   let col_accs = 'CNN + BatchNorm Accuracy (LR: ' + LEARNING_RATE + ')'
   if (LEARNING_RATE === undefined){
@@ -213,11 +186,6 @@ export async function train_BN(data, log, LEARNING_RATE, chart_id) {
   var accuracies = [col_accs];
 
   const optimizer = tf.train.sgd(LEARNING_RATE);
-  model.compile({
-    optimizer: optimizer,
-    loss: 'categoricalCrossentropy',
-    metrics: ['accuracy'],
-  });
 
   // Iteratively train our model on mini-batches of data.
   for (let i = 0; i < TRAIN_STEPS; i++) {
@@ -229,38 +197,49 @@ export async function train_BN(data, log, LEARNING_RATE, chart_id) {
      // Every few batches test the accuracy of the model.
      if (i % TEST_ITERATION_FREQUENCY === 0) {
        const testBatch = data.nextTestBatch(TEST_BATCH_SIZE);
-       validationData = [
-         // Reshape the training data from [64, 28x28] to [64, 28, 28, 1] so
-         // that we can feed it to our convolutional neural net.
-         testBatch.xs.reshape([TEST_BATCH_SIZE, IMAGE_SIZE, IMAGE_SIZE, 1]), testBatch.labels
-       ];
+       validationData = {
+         xs: testBatch.xs.reshape([TEST_BATCH_SIZE, IMAGE_SIZE, IMAGE_SIZE, 1]),
+         labels: testBatch.labels
+       };
      }
      return [batch, validationData];
    });
 
+   /* Layer Version Optimization
    const history = await model.fit(
         batch.xs, batch.labels,
         {batchSize: BATCH_SIZE, validationData, epochs: 1}
     );
+    */
 
-    const loss = history.history.loss[0];
-    const accuracy = history.history.acc[0];
+    // Core Version Optimization
+    const returnCost = true;
+    const cost = optimizer.minimize(() => {
+      return model_BN.loss(batch.labels, model_BN.model(batch.xs));
+    }, returnCost);
 
-    losses.push(loss);
-    accuracies.push(accuracy);
-    vis['chart_losses_'+chart_id].load({
-        columns: [
-            losses
-        ]
-    });
-    vis['chart_accuracy_'+chart_id].load({
-        columns: [
-            accuracies
-        ]
-    });
+
+     if (validationData != null) {
+      /* Plot and test curves*/
+      const testPred = model_BN.predict(validationData.xs)
+      const loss = model_BN.loss(validationData.labels, testPred).dataSync();
+      const accuracy = tf.metrics.categoricalAccuracy(validationData.labels, testPred).sum().dataSync()/TEST_BATCH_SIZE;
+
+      losses.push(loss);
+      accuracies.push(accuracy);
+      vis['chart_losses_'+chart_id].load({
+          columns: [
+              losses
+          ]
+      });
+      vis['chart_accuracy_'+chart_id].load({
+          columns: [
+              accuracies
+          ]
+      });
+    }
 
     tf.dispose([batch, validationData]);
-
     await tf.nextFrame();
   }
 }

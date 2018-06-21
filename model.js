@@ -11,6 +11,8 @@ import * as model_CNN from "./CNN_model"
 
 import * as hparam from "./hyperParams"
 
+import * as ridgeline from "./violin";
+
 const BATCH_SIZE = hparam.BATCH_SIZE
 const TRAIN_STEPS = hparam.TRAIN_STEPS
 const IMAGE_SIZE = hparam.IMAGE_SIZE
@@ -171,6 +173,8 @@ export async function train(data, log, LEARNING_RATE, chart_id) {
   }
 }
 
+// CNN + BN ---------------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------------------------
 
 // Train the model with BN
 export async function train_BN(data, log, LEARNING_RATE, chart_id) {
@@ -204,13 +208,6 @@ export async function train_BN(data, log, LEARNING_RATE, chart_id) {
      }
      return [batch, validationData];
    });
-
-   /* Layer Version Optimization
-   const history = await model.fit(
-        batch.xs, batch.labels,
-        {batchSize: BATCH_SIZE, validationData, epochs: 1}
-    );
-    */
 
     // Core Version Optimization
     const returnCost = true;

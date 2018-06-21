@@ -5,6 +5,7 @@ import Chart from "chart.js";
 import * as utils from "./utils";
 var stats = require("stats-lite")
 
+var $ = require('jquery');
 
 // Loss
 let chart_losses_0 = c3.generate({
@@ -101,6 +102,7 @@ document.getElementById('randomizeData').addEventListener('click', function() {
 
   window.myScatter.options.title.text = 'Random Data';
 	window.myScatter.update();
+  $('#subMean').prop('disabled', false);
 
 });
 
@@ -130,6 +132,8 @@ document.getElementById('subMean').addEventListener('click', function() {
 
 // Scale The Variance
 document.getElementById('normVar').addEventListener('click', function() {
+  $('#subMean').prop('disabled', true);
+
   var xs = [];
   var ys = [];
   scatterChartData.datasets[0].data.forEach(function(point) {
@@ -153,3 +157,6 @@ document.getElementById('normVar').addEventListener('click', function() {
   window.myScatter.options.title.text = 'Normalized';
 	window.myScatter.update();
 });
+
+
+//

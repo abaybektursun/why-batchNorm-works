@@ -30,6 +30,7 @@ var offset2;
 
 var moments;
 var moments2;
+
 //**************************************************************************************
 
 export function freshParams(){
@@ -52,52 +53,53 @@ export function freshParams(){
   fullyConnectedBias = tf.variable(tf.zeros([hparam.LABELS_SIZE]));
 }
 
+export let conv1, batchNorm1, conv2, batchNorm2;
 
 // Our actual model
 export function model(inputXs, noise=false) {
   var xs = inputXs.as4D(-1, hparam.IMAGE_SIZE, hparam.IMAGE_SIZE, 1);
 
   // Conv 1
-  var layer1 = tf.tidy(() => {
+  conv1 = tf.tidy(() => {
     return xs.conv2d(conv1Weights, 1, 'same')
         .relu()
         .maxPool([2, 2], strides, pad);
   });
 
-
   // BatchNorm 1
   var varianceEpsilon = 1e-6
   moments = tf.tidy(() => {
-    return tf.moments(layer1, [0, 1, 2]);
+    return tf.moments(conv1, [0, 1, 2]);
   });
-  //console.log('layer1 : ' + layer1.shape + ' Mean: ' + moments.mean.shape + ' Variance: ' + moments.variance.shape );
-  //console.log('scale1: ' + scale1.shape + ' offset1: ' + offset1.shape)
-  layer1 = tf.tidy(() => {
-    return layer1.batchNormalization(moments.mean, moments.variance, varianceEpsilon, scale1, offset1);
+  batchNorm1 = tf.tidy(() => {
+    return conv1.batchNormalization(moments.mean, moments.variance, varianceEpsilon, scale1, offset1);
   });
-
 
   // Conv 2
-  var layer2 = tf.tidy(() => {
-    return layer1.conv2d(conv2Weights, 1, 'same')
+  conv2 = tf.tidy(() => {
+    return batchNorm1.conv2d(conv2Weights, 1, 'same')
         .relu()
         .maxPool([2, 2], strides, pad);
   });
 
   // BatchNorm 2
   moments2 = tf.tidy(() => {
-    return tf.moments(layer2, [0, 1, 2]);
+    return tf.moments(conv2, [0, 1, 2]);
   });
-  layer2 = tf.tidy(() => {
-    return layer2.batchNormalization(moments2.mean, moments2.variance, varianceEpsilon, scale2, offset2);
+  batchNorm2 = tf.tidy(() => {
+    return conv2.batchNormalization(moments2.mean, moments2.variance, varianceEpsilon, scale2, offset2);
   });
 
   // Final layer
-  return layer2.as2D(-1, fullyConnectedWeights.shape[0])
+  return batchNorm2.as2D(-1, fullyConnectedWeights.shape[0])
       .matMul(fullyConnectedWeights)
       .add(fullyConnectedBias);
 }
 
+/*module.exports.conv1 = conv1;
+module.exports.batchNorm1 = batchNorm1;
+module.exports.conv2 = conv2;
+module.exports.batchNorm2 = batchNorm2;*/
 
 
 

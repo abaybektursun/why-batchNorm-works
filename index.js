@@ -34,8 +34,8 @@ async function mnist() {
   await load('0');
   await train(0.1, '0');
   await train_BN(0.1, '0');
-  await train(0.55, '0');
-  await train_BN(0.55, '0');
+  await train(0.5, '0');
+  await train_BN(0.5, '0');
 
   $('#train'+'0').prop('disabled', false);
   $('#train'+'0').text('Done. Train Again?');

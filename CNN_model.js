@@ -3,6 +3,7 @@ import {Scalar, serialization, Tensor, tidy, util} from '@tensorflow/tfjs-core';
 
 import * as hparam from "./hyperParams"
 
+
 // Loss function
 export function loss(labels, ys) {
   return tf.losses.softmaxCrossEntropy(labels, ys).mean();
@@ -33,39 +34,35 @@ export function freshParams(){
   fullyConnectedBias_ = tf.variable(tf.zeros([hparam.LABELS_SIZE]));
 }
 
+
+export let conv1, conv2;
+
 // Our actual model
 export function model(inputXs, noise=false) {
-
-
   var xs = inputXs.as4D(-1, hparam.IMAGE_SIZE, hparam.IMAGE_SIZE, 1);
 
   var strides = 2;
   var pad = 0;
 
   // Conv 1
-  var layer1 = tf.tidy(() => {
+  conv1 = tf.tidy(() => {
     return xs.conv2d(conv1Weights_, 1, 'same')
         .relu()
         .maxPool([2, 2], strides, pad);
   });
 
   // Conv 2
-  var layer2 = tf.tidy(() => {
-    return layer1.conv2d(conv2Weights_, 1, 'same')
+  conv2 = tf.tidy(() => {
+    return conv1.conv2d(conv2Weights_, 1, 'same')
         .relu()
         .maxPool([2, 2], strides, pad);
   });
 
   // Final layer
-  return layer2.as2D(-1, fullyConnectedWeights_.shape[0])
+  return conv2.as2D(-1, fullyConnectedWeights_.shape[0])
       .matMul(fullyConnectedWeights_)
       .add(fullyConnectedBias_);
 }
-
-
-
-
-
 
 
 

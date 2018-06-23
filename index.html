@@ -43,22 +43,30 @@
       <div style='float: right; width: 45%' id="chart_accuracy_0"></div>
     </div>
 
-    <p>
-
-    <div class="chart-wrapper" id="chart-distro1"></div>
-    <!--Sorry about all the inline JS. It is a quick way to show what options are available-->
-    <div class="chart-options">
-      <p>Show: </p>
-      <button onclick="chart1.violinPlots.hide();chart1.boxPlots.show({reset:true});chart1.notchBoxes.hide();chart1.dataPlots.change({showPlot:false,showBeanLines:false})">Box Plot</button>
-      <button onclick="chart1.violinPlots.hide();chart1.notchBoxes.show({reset:true});chart1.boxPlots.show({reset:true, showBox:false,showOutliers:true,boxWidth:20,scatterOutliers:true});chart1.dataPlots.change({showPlot:false,showBeanLines:false})">Notched Box Plot</button>
-      <button onclick="chart1.violinPlots.show({reset:true,clamp:0});chart1.boxPlots.show({reset:true, showWhiskers:false,showOutliers:false,boxWidth:10,lineWidth:15,colors:['#555']});chart1.notchBoxes.hide();chart1.dataPlots.change({showPlot:false,showBeanLines:false})">Violin Plot Unbound</button>
-      <button onclick="chart1.violinPlots.show({reset:true,clamp:1});chart1.boxPlots.show({reset:true, showWhiskers:false,showOutliers:false,boxWidth:10,lineWidth:15,colors:['#555']});chart1.notchBoxes.hide();chart1.dataPlots.change({showPlot:false,showBeanLines:false})">Violin Plot Clamp to Data</button>
-      <button onclick="chart1.violinPlots.show({reset:true, width:75, clamp:0, resolution:30, bandwidth:50});chart1.dataPlots.show({showBeanLines:true,beanWidth:15,showPlot:false,colors:['#555']});chart1.boxPlots.hide();chart1.notchBoxes.hide()">Bean Plot</button>
-      <button onclick="chart1.violinPlots.hide();chart1.dataPlots.show({showPlot:true, plotType:'beeswarm',showBeanLines:false, colors:null});chart1.notchBoxes.hide();chart1.boxPlots.hide();">Beeswarm Plot</button>
-      <button onclick="chart1.violinPlots.hide();chart1.dataPlots.show({showPlot:true, plotType:40, showBeanLines:false,colors:null});chart1.notchBoxes.hide();chart1.boxPlots.hide();">Scatter Plot</button>
-      <button onclick="if(chart1.dataPlots.options.showLines){chart1.dataPlots.change({showLines:false});} else {chart1.dataPlots.change({showLines:['median','quartile1','quartile3']});}">Trend Lines</button>
+    <button id="train1" class="btn btn-block btn-rand">Train</button>
+    <div id="message"></div>
+    <div>
+      <div style='float: left; width: 45%' id="chart_losses_1"></div>
+      <div style='float: right; width: 45%' id="chart_accuracy_1"></div>
     </div>
 
+    <p>
+
+    <div>
+      <div class="chart-wrapper" id="chart-distro1"></div>
+
+      <div class="chart-options">
+        <p>Show: </p>
+        <button id="BoxPlot">Box Plot</button>
+        <button id="NotchedBoxPlot">Notched Box Plot</button>
+        <button id="ViolinPlotUnbound">Violin Plot Unbound</button>
+        <button id="ViolinPlotClamptoData">Violin Plot Clamp to Data</button>
+        <button id="BeanPlot">Bean Plot</button>
+        <button id="BeeswarmPlot">Beeswarm Plot</button>
+        <button id="ScatterPlot">Scatter Plot</button>
+        <button id="TrendLines">Trend Lines</button>
+      </div>
+    </div>
     <script src="index.js"></script>
   </body>
 </html>

@@ -16,9 +16,9 @@ async function train(LEARNING_RATE, chart_id) {
   await model.train(data, ui.trainingLog, LEARNING_RATE, chart_id);
 }
 
-async function train_BN(LEARNING_RATE, chart_id) {
+async function train_BN(LEARNING_RATE, chart_id, noise=false) {
   ui.isTraining(chart_id);
-  await model.train_BN(data, ui.trainingLog, LEARNING_RATE, chart_id);
+  await model.train_BN(data, ui.trainingLog, LEARNING_RATE, chart_id, noise=noise);
 }
 
 async function test() {
@@ -30,18 +30,32 @@ async function test() {
   ui.showTestResults(batch, predictions, labels);
 }
 
-async function mnist() {
-  await load('0');
-  await train(0.1, '0');
-  await train_BN(0.1, '0');
-  await train(0.5, '0');
-  await train_BN(0.5, '0');
-
+async function train0() {
+  var id = '0';
+  await load(id);
+  await train(0.1, id);
+  await train_BN(0.1, id);
+  await train(0.5, id);
+  await train_BN(0.5, id);
   $('#train'+'0').prop('disabled', false);
   $('#train'+'0').text('Done. Train Again?');
 }
 
+async function train1() {
+  var id = '1';
+  await load(id);
+  await train(undefined, id);
+  await train_BN(undefined, id);
+  await train_BN(undefined, id, true);
+  $('#train'+'1').prop('disabled', false);
+  $('#train'+'1').text('Done. Train Again?');
+}
+
 
 document.getElementById('train0').addEventListener('click', function() {
-  mnist();
+  train0();
+});
+
+document.getElementById('train1').addEventListener('click', function() {
+  train1();
 });

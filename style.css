@@ -67,7 +67,7 @@ fieldset[disabled] .btn-rand.active {
     width: 100%;
 }
 .chart-wrapper .outer-box {
-    position: absolute;
+    position: relative;
     top: 0;
     bottom: 0;
     left: 0;

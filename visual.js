@@ -7,7 +7,6 @@ var stats = require("stats-lite")
 
 var $ = require('jquery');
 
-// Loss
 let chart_losses_0 = c3.generate({
     bindto: '#chart_losses_0',
     data: {
@@ -19,7 +18,6 @@ let chart_losses_0 = c3.generate({
       columns: []
     }
 });
-
 let chart_accuracy_0 = c3.generate({
     bindto: '#chart_accuracy_0',
     data: {
@@ -31,11 +29,36 @@ let chart_accuracy_0 = c3.generate({
       columns: []
     }
 });
+let chart_losses_1 = c3.generate({
+    bindto: '#chart_losses_1',
+    data: {
+      empty: {
+        label: {
+          text: "Train Set Losses"
+        }
+      },
+      columns: []
+    }
+});
+let chart_accuracy_1 = c3.generate({
+    bindto: '#chart_accuracy_1',
+    data: {
+      empty: {
+        label: {
+          text: "Train Set Accuracies"
+        }
+      },
+      columns: []
+    }
+});
+
 
 
 module.exports = {
   chart_losses_0: chart_losses_0,
   chart_accuracy_0: chart_accuracy_0,
+  chart_losses_1: chart_losses_1,
+  chart_accuracy_1: chart_accuracy_1,
 };
 
 

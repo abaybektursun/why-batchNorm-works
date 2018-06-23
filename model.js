@@ -52,7 +52,7 @@ serialization.SerializationMap.register(Noise);*/
 
 /*-----------------------------------------------------------------------------------------------*/
 // CNN
-/*
+/*http://otoro.net/kanji-rnn/
 function create_model(){
   const model = tf.sequential();
   model.add(tf.layers.conv2d({
@@ -79,7 +79,7 @@ function create_model(){
 }
 
 // CNN with BatchNorm
-function create_model_BN(){
+function create_model_BN(){http://otoro.net/kanji-rnn/
   const model = tf.sequential();
   model.add(tf.layers.conv2d({
     inputShape: [IMAGE_SIZE, IMAGE_SIZE, 1],
@@ -177,7 +177,7 @@ export async function train(data, log, LEARNING_RATE, chart_id) {
 //-------------------------------------------------------------------------------------------------------------------
 
 // Train the model with BN
-export async function train_BN(data, log, LEARNING_RATE, chart_id) {
+export async function train_BN(data, log, LEARNING_RATE, chart_id, noise=false) {
   model_BN.freshParams()
   let col_losses = 'CNN + BatchNorm Loss (LR: ' + LEARNING_RATE + ')'
   let col_accs = 'CNN + BatchNorm Accuracy (LR: ' + LEARNING_RATE + ')'
@@ -186,6 +186,11 @@ export async function train_BN(data, log, LEARNING_RATE, chart_id) {
     col_losses =  'CNN + BatchNorm Loss'
     col_accs = 'CNN + BatchNorm Accuracy'
   }
+  if (noise){
+    col_losses += ' w/ Noise';
+    col_accs += ' w/ Noise';
+  }
+
   var losses = [col_losses];
   var accuracies = [col_accs];
 

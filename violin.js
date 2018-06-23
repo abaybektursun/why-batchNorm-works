@@ -1561,3 +1561,34 @@ chart1.renderBoxPlot();
 chart1.renderDataPlots();
 chart1.renderNotchBoxes({showNotchBox:false});
 chart1.renderViolinPlot({showViolinPlot:false});
+
+
+
+
+
+// Buttons
+document.getElementById('BoxPlot').addEventListener('click', function() {
+  chart1.violinPlots.hide();chart1.boxPlots.show({reset:true});chart1.notchBoxes.hide();chart1.dataPlots.change({showPlot:false,showBeanLines:false});
+});
+document.getElementById('NotchedBoxPlot').addEventListener('click', function() {
+  chart1.violinPlots.hide();chart1.notchBoxes.show({reset:true});chart1.boxPlots.show({reset:true, showBox:false,showOutliers:true,boxWidth:20,scatterOutliers:true});chart1.dataPlots.change({showPlot:false,showBeanLines:false});
+
+});
+document.getElementById('ViolinPlotUnbound').addEventListener('click', function() {
+  chart1.violinPlots.show({reset:true,clamp:0});chart1.boxPlots.show({reset:true, showWhiskers:false,showOutliers:false,boxWidth:10,lineWidth:15,colors:['#555']});chart1.notchBoxes.hide();chart1.dataPlots.change({showPlot:false,showBeanLines:false});
+});
+document.getElementById('ViolinPlotClamptoData').addEventListener('click', function() {
+  chart1.violinPlots.show({reset:true,clamp:1});chart1.boxPlots.show({reset:true, showWhiskers:false,showOutliers:false,boxWidth:10,lineWidth:15,colors:['#555']});chart1.notchBoxes.hide();chart1.dataPlots.change({showPlot:false,showBeanLines:false});
+});
+document.getElementById('BeanPlot').addEventListener('click', function() {
+  chart1.violinPlots.show({reset:true, width:75, clamp:0, resolution:30, bandwidth:50});chart1.dataPlots.show({showBeanLines:true,beanWidth:15,showPlot:false,colors:['#555']});chart1.boxPlots.hide();chart1.notchBoxes.hide();
+});
+document.getElementById('BeeswarmPlot').addEventListener('click', function() {
+  chart1.violinPlots.hide();chart1.dataPlots.show({showPlot:true, plotType:'beeswarm',showBeanLines:false, colors:null});chart1.notchBoxes.hide();chart1.boxPlots.hide();
+});
+document.getElementById('ScatterPlot').addEventListener('click', function() {
+  chart1.violinPlots.hide();chart1.dataPlots.show({showPlot:true, plotType:40, showBeanLines:false,colors:null});chart1.notchBoxes.hide();chart1.boxPlots.hide();
+});
+document.getElementById('TrendLines').addEventListener('click', function() {
+  if(chart1.dataPlots.options.showLines){chart1.dataPlots.change({showLines:false});} else {chart1.dataPlots.change({showLines:['median','quartile1','quartile3']});};
+});

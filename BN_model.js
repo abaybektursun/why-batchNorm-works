@@ -75,6 +75,12 @@ export function model(inputXs, noise=false) {
     return conv1.batchNormalization(moments.mean, moments.variance, varianceEpsilon, scale1, offset1);
   });
 
+  if (noise){
+    batchNorm1 = tf.tidy(() => {
+      return batchNorm1 + tf.randomNormal(batchNorm1.shape);
+    });
+  }
+
   // Conv 2
   conv2 = tf.tidy(() => {
     return batchNorm1.conv2d(conv2Weights, 1, 'same')

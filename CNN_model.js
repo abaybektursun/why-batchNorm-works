@@ -19,6 +19,10 @@ var conv2Weights_;
 
 var fullyConnectedWeights_;
 var fullyConnectedBias_ ;
+
+
+var moments;
+var moments2;
 //**************************************************************************************
 
 export function freshParams(){
@@ -52,6 +56,9 @@ export function model(inputXs, noise=false) {
         .relu()
         .maxPool([2, 2], strides, pad);
   });
+  moments = tf.tidy(() => {
+    return tf.moments(conv1, [0, 1, 2]);
+  });
   layer1_data = layer1_data.concat(conv1.dataSync());
 
   // Conv 2
@@ -59,6 +66,9 @@ export function model(inputXs, noise=false) {
     return conv1.conv2d(conv2Weights_, 1, 'same')
         .relu()
         .maxPool([2, 2], strides, pad);
+  });
+  moments2 = tf.tidy(() => {
+    return tf.moments(conv2, [0, 1, 2]);
   });
   layer2_data = layer2_data.concat(conv2.dataSync());
 

@@ -53,17 +53,17 @@ fieldset[disabled] .btn-rand.active {
 
 
 
-// Violin plot
-//-------------------------------------------------------------------------
-.chart-wrapper {
-    max-width: 800px;  /*Overwritten by the JS*/
+/* Violin plot*/
+/*-------------------------------------------------------------------------*/
+/*.chart-wrapper {
+		position: relative;
+    max-width: 800px;
     min-width: 304px;
     margin-bottom: 8px;
     background-color: #FAF7F7;
-}
+}*/
 .chart-wrapper .inner-wrapper {
     position: relative;
-    padding-bottom: 50%; /*Overwritten by the JS*/
     width: 100%;
 }
 .chart-wrapper .outer-box {
@@ -196,4 +196,4 @@ fieldset[disabled] .btn-rand.active {
 }
 
 
-//-------------------------------------------------------------------------
+/*-------------------------------------------------------------------------*/

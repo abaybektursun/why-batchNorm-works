@@ -36,6 +36,8 @@ export function freshParams(){
 
 
 export let conv1, conv2;
+export let layer1_data = [];
+export let layer2_data = [];
 
 // Our actual model
 export function model(inputXs, noise=false) {
@@ -50,6 +52,7 @@ export function model(inputXs, noise=false) {
         .relu()
         .maxPool([2, 2], strides, pad);
   });
+  layer1_data = layer1_data.concat(conv1.dataSync());
 
   // Conv 2
   conv2 = tf.tidy(() => {
@@ -57,6 +60,7 @@ export function model(inputXs, noise=false) {
         .relu()
         .maxPool([2, 2], strides, pad);
   });
+  layer2_data = layer2_data.concat(conv2.dataSync());
 
   // Final layer
   return conv2.as2D(-1, fullyConnectedWeights_.shape[0])

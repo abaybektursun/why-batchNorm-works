@@ -11,14 +11,14 @@ async function load(chart_id) {
   await data.load();
 }
 
-async function train(LEARNING_RATE, chart_id) {
+async function train(LEARNING_RATE, chart_id, noise=false, subId=undefined) {
   ui.isTraining(chart_id);
-  await model.train(data, ui.trainingLog, LEARNING_RATE, chart_id);
+  await model.train('CNN', data, ui.trainingLog, LEARNING_RATE, chart_id, noise, subId);
 }
 
-async function train_BN(LEARNING_RATE, chart_id, noise=false) {
+async function train_BN(LEARNING_RATE, chart_id, noise=false, subId=undefined) {
   ui.isTraining(chart_id);
-  await model.train_BN(data, ui.trainingLog, LEARNING_RATE, chart_id, noise=noise);
+  await model.train('CNN_BN', data, ui.trainingLog, LEARNING_RATE, chart_id, noise, subId);
 }
 
 async function test() {
@@ -37,18 +37,16 @@ async function train0() {
   await train_BN(0.1, id);
   await train(0.5, id);
   await train_BN(0.5, id);
-  $('#train'+'0').prop('disabled', false);
-  $('#train'+'0').text('Done. Train Again?');
+  ui.done(id);
 }
 
 async function train1() {
   var id = '1';
   await load(id);
-  await train(undefined, id);
-  await train_BN(undefined, id);
-  await train_BN(undefined, id, true);
-  $('#train'+'1').prop('disabled', false);
-  $('#train'+'1').text('Done. Train Again?');
+  await train(undefined, id, false, '_1');
+  await train_BN(undefined, id, false, '_2');
+  await train_BN(undefined, id, true, '_3');
+  ui.done(id);
 }
 
 

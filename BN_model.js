@@ -31,6 +31,7 @@ var offset2;
 var moments;
 var moments2;
 
+export var train_step;
 //**************************************************************************************
 
 export function freshParams(){
@@ -51,9 +52,12 @@ export function freshParams(){
       [7 * 7 * conv2OutputDepth, hparam.LABELS_SIZE], 0,
       1 / Math.sqrt(7 * 7 * conv2OutputDepth)));
   fullyConnectedBias = tf.variable(tf.zeros([hparam.LABELS_SIZE]));
+
 }
 
 export let conv1, batchNorm1, conv2, batchNorm2;
+export let layer1_data = [];
+export let layer2_data = [];
 
 // Our actual model
 export function model(inputXs, noise=false) {
@@ -74,6 +78,7 @@ export function model(inputXs, noise=false) {
   batchNorm1 = tf.tidy(() => {
     return conv1.batchNormalization(moments.mean, moments.variance, varianceEpsilon, scale1, offset1);
   });
+  layer1_data = layer1_data.concat(batchNorm1.dataSync());
 
   if (noise){
     batchNorm1 = tf.tidy(() => {
@@ -95,6 +100,7 @@ export function model(inputXs, noise=false) {
   batchNorm2 = tf.tidy(() => {
     return conv2.batchNormalization(moments2.mean, moments2.variance, varianceEpsilon, scale2, offset2);
   });
+  layer2_data = layer2_data.concat(batchNorm2.dataSync());
 
   // Final layer
   return batchNorm2.as2D(-1, fullyConnectedWeights.shape[0])

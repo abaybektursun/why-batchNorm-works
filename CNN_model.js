@@ -11,19 +11,19 @@ export function loss(labels, ys) {
 }
 
 // Variables that we want to optimize****************************************************
-var conv1OutputDepth = 8;
-var conv1Weights_;
+export let conv1OutputDepth = 8;
+export let conv1Weights_;
 
-var conv2InputDepth = conv1OutputDepth;
-var conv2OutputDepth = 16;
-var conv2Weights_;
+export let conv2InputDepth = conv1OutputDepth;
+export let conv2OutputDepth = 16;
+export let conv2Weights_;
 
-var fullyConnectedWeights_;
-var fullyConnectedBias_ ;
+export let fullyConnectedWeights_;
+export let fullyConnectedBias_ ;
 
 
-var moments;
-var moments2;
+export let moments;
+export let moments2;
 //**************************************************************************************
 
 export function freshParams(){
@@ -41,12 +41,12 @@ export function freshParams(){
 
 
 export let conv1, conv2;
-export let conv1g, conv1Weights_g, beta_smoothness;
+export let conv1g, conv1gl, beta_smoothness;
 export let layer1_data;
 export let layer2_data;
 export let moments_data;
 export let moments2_data;
-export let grad;
+export let grad, gradl;
 
 // noise=false is just a hack to make the function more general, noise parameter is not used in this model
 export function model(inputXs, noise=false) {
@@ -70,16 +70,31 @@ export function model(inputXs, noise=false) {
   };
   layer1_data = conv1.dataSync();
 
-  // Gradient ******************************
-  conv1Weights_g = conv1Weights_.clone();
+  // Gradient ******************************\
   conv1g = x => tf.tidy(() => {
-    return xs.conv2d(conv1Weights_g, 1, 'same')
+    return conv1.conv2d(conv2Weights_, 1, 'same')
         .relu()
-        .maxPool([2, 2], strides, pad);
+        .maxPool([2, 2], strides, pad)
+        .as2D(-1, fullyConnectedWeights_.shape[0])
+        .matMul(fullyConnectedWeights_)
+        .add(fullyConnectedBias_);
   });
   grad = tf.grad(conv1g);
+  let conv1l = conv1.sub(grad(conv1).mul(tf.scalar(hparam.A)));
+  // Along the gradient
+  conv1gl = x => tf.tidy(() => {
+    return conv1l.conv2d(conv2Weights_, 1, 'same')
+        .relu()
+        .maxPool([2, 2], strides, pad)
+        .as2D(-1, fullyConnectedWeights_.shape[0])
+        .matMul(fullyConnectedWeights_)
+        .add(fullyConnectedBias_);
+  });
+  gradl = tf.grad(conv1gl);
+  beta_smoothness = tf.norm(grad(conv1).sub(gradl(conv1l)))
+                    .div(tf.norm(grad(conv1).mul(tf.scalar(hparam.A)))).dataSync();
 
-  beta_smoothness = grad(xs);
+
   //****************************************
 
   // Conv 2

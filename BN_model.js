@@ -10,32 +10,32 @@ export function loss(labels, ys) {
 }
 
 // Variables that we want to optimize****************************************************
-var strides = 2;
-var pad = 0;
+export let strides = 2;
+export let pad = 0;
 
-var conv1OutputDepth = 8;
-var conv1Weights;
+export let conv1OutputDepth = 8;
+export let conv1Weights;
 
-var conv2InputDepth = conv1OutputDepth;
-var conv2OutputDepth = 16;
-var conv2Weights;
+export let conv2InputDepth = conv1OutputDepth;
+export let conv2OutputDepth = 16;
+export let conv2Weights;
 
-var fullyConnectedWeights;
-var fullyConnectedBias;
+export let fullyConnectedWeights;
+export let fullyConnectedBias;
 
-var scale1;
-var offset1;
+export let scale1;
+export let offset1;
 
-var scale2;
-var offset2;
+export let scale2;
+export let offset2;
 
-var moments;
-var moments2;
+export let moments;
+export let moments2;
 
-var moments_nonTrain;
-var moments2_nonTrain;
+export let moments_nonTrain;
+export let moments2_nonTrain;
 
-export var train_step;
+export let train_step;
 //**************************************************************************************
 
 export function freshParams(){
@@ -60,11 +60,12 @@ export function freshParams(){
 }
 
 export let conv1, batchNorm1, conv2, batchNorm2;
+export let conv1g, conv1gl, beta_smoothness;
 export let layer1_data;
 export let layer2_data;
 export let moments_data;
 export let moments2_data;
-export let grad;
+export let grad, gradl;
 
 // Our actual model
 export function model(inputXs, noise=false) {
@@ -102,12 +103,6 @@ export function model(inputXs, noise=false) {
     variance: stats.mean(moments_nonTrain.variance.dataSync())
   };
 
-  // Gradient
-  const batchNorm1g = x => tf.tidy(() => {
-    return conv1.batchNormalization(moments.mean, moments.variance, varianceEpsilon, scale1, offset1);
-  });
-  grad = tf.grad(batchNorm1g);
-
   // Conv 2
   conv2 = tf.tidy(() => {
     return batchNorm1.conv2d(conv2Weights, 1, 'same')
@@ -133,10 +128,43 @@ export function model(inputXs, noise=false) {
   }
   //layer2_data = layer2_data.concat(batchNorm2.dataSync());
 
+
+
+  // Gradient ******************************************************************\
+  const a = 1.2
+  conv1g = x => tf.tidy(() => {
+    return batchNorm1.conv2d(conv2Weights, 1, 'same')
+        .relu()
+        .maxPool([2, 2], strides, pad)
+        .batchNormalization(moments2.mean, moments2.variance, varianceEpsilon, scale2, offset2)
+        .as2D(-1, fullyConnectedWeights.shape[0])
+        .matMul(fullyConnectedWeights)
+        .add(fullyConnectedBias);
+  });
+  grad = tf.grad(conv1g);
+  let conv1l = batchNorm1.sub(grad(batchNorm1).mul(tf.scalar(hparam.A)));
+  // Along the gradient
+  conv1gl = x => tf.tidy(() => {
+    return conv1l.conv2d(conv2Weights, 1, 'same')
+        .relu()
+        .maxPool([2, 2], strides, pad)
+        .batchNormalization(moments2.mean, moments2.variance, varianceEpsilon, scale2, offset2)
+        .as2D(-1, fullyConnectedWeights.shape[0])
+        .matMul(fullyConnectedWeights)
+        .add(fullyConnectedBias);
+  });
+  gradl = tf.grad(conv1gl);
+  beta_smoothness = tf.norm(grad(batchNorm1).sub(gradl(conv1l)))
+                    .div(tf.norm(grad(batchNorm1).mul(tf.scalar(hparam.A)))).dataSync();
+  //****************************************************************************\
+
   // Final layer
   return batchNorm2.as2D(-1, fullyConnectedWeights.shape[0])
       .matMul(fullyConnectedWeights)
       .add(fullyConnectedBias);
+
+
+
 }
 
 /*module.exports.conv1 = conv1;

@@ -309,10 +309,10 @@ export async function train(model_str, data, log, LEARNING_RATE, chart_id, noise
     if (prevLoss === undefined){
       prevLoss = loss;
       lossChanges.push(0);
-      betas.push(0);
     }
     else{
       lossChanges.push(Math.abs(prevLoss - loss));
+      betas.push(model.beta_smoothness);
 
       vis['lossLand'+chart_id].load({
           columns: [
@@ -321,10 +321,12 @@ export async function train(model_str, data, log, LEARNING_RATE, chart_id, noise
           type: 'area-spline'
       });
 
-      //let beta_smoothness = x_t - 1.5*model.grad(xs);
 
-      console.log(model.beta_smoothness.shape);
-
+      vis['betaSmooth'+chart_id].load({
+          columns: [
+              betas
+          ]
+      });
 
       prevLoss = loss;
     }

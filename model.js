@@ -108,7 +108,7 @@ function create_model_BN(){http://otoro.net/kanji-rnn/
 /*-----------------------------------------------------------------------------------------------*/
 
 export async function train(model_str, data, log, LEARNING_RATE, chart_id, noise=false, subId=undefined) {
-  var model, col_accs, col_accs, col_losses, col_meanCh, col_varCh, col_meanCh2, col_varCh2, col_losseLands;
+  var model, col_accs, col_accs, col_losses, col_meanCh, col_varCh, col_meanCh2, col_varCh2, col_losseLands, col_betas;
   var activations = [];
   switch(model_str) {
     case 'CNN':
@@ -119,7 +119,9 @@ export async function train(model_str, data, log, LEARNING_RATE, chart_id, noise
       col_varCh  = 'CNN Variance Change (LR: ' + LEARNING_RATE + ')';
       col_meanCh2 = col_meanCh;
       col_varCh2  = col_varCh;
-      col_losseLands = "CNN ";
+      col_losseLands = 'CNN Loss Change (LR: ' + LEARNING_RATE + ')';
+      col_betas = 'CNN β (LR: ' + LEARNING_RATE + ')';
+
       if (LEARNING_RATE === undefined){
         LEARNING_RATE = LR;
         col_losses =  'CNN Loss';
@@ -128,6 +130,8 @@ export async function train(model_str, data, log, LEARNING_RATE, chart_id, noise
         col_varCh  = 'CNN Variance Change';
         col_meanCh2 = col_meanCh;
         col_varCh2  = col_varCh;
+        col_losseLands = 'CNN Loss Change';
+        col_betas = 'CNN β'
       }
       break;
     case 'CNN_BN':
@@ -138,6 +142,8 @@ export async function train(model_str, data, log, LEARNING_RATE, chart_id, noise
       col_varCh  = 'CNN + BatchNorm Variance Change (LR: ' + LEARNING_RATE + ')';
       col_meanCh2 = col_meanCh;
       col_varCh2  = col_varCh;
+      col_losseLands = 'CNN + BatchNorm Loss Change (LR: ' + LEARNING_RATE + ')';
+      col_betas = 'CNN + BatchNorm β (LR: ' + LEARNING_RATE + ')';
       if (LEARNING_RATE === undefined){
         LEARNING_RATE = LR;
         col_losses =  'CNN + BatchNorm Loss';
@@ -146,6 +152,8 @@ export async function train(model_str, data, log, LEARNING_RATE, chart_id, noise
         col_varCh  = 'CNN + BatchNorm Variance Change';
         col_meanCh2 = col_meanCh;
         col_varCh2  = col_varCh;
+        col_losseLands = 'CNN + BatchNorm Loss Change';
+        col_betas = 'CNN + BatchNorm β'
       }
       break;
     default:
@@ -169,10 +177,12 @@ export async function train(model_str, data, log, LEARNING_RATE, chart_id, noise
   let varChange = [col_varCh];
   let meanChange2 = [col_meanCh2];
   let varChange2 = [col_varCh2];
+  let lossChanges = [col_losseLands];
+  let betas = [col_betas];
 
   const optimizer = tf.train.sgd(LEARNING_RATE);
 
-  let prevMean, prevVar, prevMean2, prevVar2, prevLoss;
+  let prevMean, prevVar, prevMean2, prevVar2, prevLoss, prevlayer1_data, prevGrad;
 
   // Iteratively train our model on mini-batches of data.
   for (let i = 0; i < TRAIN_STEPS; i++) {
@@ -298,8 +308,24 @@ export async function train(model_str, data, log, LEARNING_RATE, chart_id, noise
 
     if (prevLoss === undefined){
       prevLoss = loss;
+      lossChanges.push(0);
+      betas.push(0);
     }
     else{
+      lossChanges.push(Math.abs(prevLoss - loss));
+
+      vis['lossLand'+chart_id].load({
+          columns: [
+              lossChanges
+          ],
+          type: 'area-spline'
+      });
+
+      //let beta_smoothness = x_t - 1.5*model.grad(xs);
+
+      console.log(model.beta_smoothness.shape);
+
+
       prevLoss = loss;
     }
 
@@ -327,4 +353,69 @@ export async function train(model_str, data, log, LEARNING_RATE, chart_id, noise
   }
 
   //violin.plot(chart_id+subId, activations);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Assumes a valid matrix and returns its dimension array.
+// Won't work for irregular matrices, but is cheap.
+function dim(mat) {
+    if (mat instanceof Array) {
+        return [mat.length].concat(dim(mat[0]));
+    } else {
+        return [];
+    }
+}
+
+// Makes a validator function for a given matrix structure d.
+function validator(d) {
+    return function (mat) {
+        if (mat instanceof Array) {
+            return d.length > 0
+                && d[0] === mat.length
+                && every(mat, validator(d.slice(1)));
+        } else {
+            return d.length === 0;
+        }
+    };
+}
+
+// Combines dim and validator to get the required function.
+function getdim(mat) {
+    var d = dim(mat);
+    return validator(d)(mat) ? d : false;
+}
+
+// Checks whether predicate applies to every element of array arr.
+// This ought to be built into JS some day!
+function every(arr, predicate) {
+    var i, N;
+    for (i = 0, N = arr.length; i < N; ++i) {
+        if (!predicate(arr[i])) {
+            return false;
+        }
+    }
+
+    return true;
 }

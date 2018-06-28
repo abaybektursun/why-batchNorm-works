@@ -41,10 +41,12 @@ export function freshParams(){
 
 
 export let conv1, conv2;
-export let layer1_data = [];
-export let layer2_data = [];
-export let moments_data = [];
-export let moments2_data = [];
+export let conv1g, conv1Weights_g, beta_smoothness;
+export let layer1_data;
+export let layer2_data;
+export let moments_data;
+export let moments2_data;
+export let grad;
 
 // noise=false is just a hack to make the function more general, noise parameter is not used in this model
 export function model(inputXs, noise=false) {
@@ -66,7 +68,19 @@ export function model(inputXs, noise=false) {
     mean: stats.mean(moments.mean.dataSync()),
     variance: stats.mean(moments.variance.dataSync())
   };
-  //layer1_data = layer1_data.concat(conv1.dataSync());
+  layer1_data = conv1.dataSync();
+
+  // Gradient ******************************
+  conv1Weights_g = conv1Weights_.clone();
+  conv1g = x => tf.tidy(() => {
+    return xs.conv2d(conv1Weights_g, 1, 'same')
+        .relu()
+        .maxPool([2, 2], strides, pad);
+  });
+  grad = tf.grad(conv1g);
+
+  beta_smoothness = grad(xs);
+  //****************************************
 
   // Conv 2
   conv2 = tf.tidy(() => {

@@ -60,11 +60,11 @@ export function freshParams(){
 }
 
 export let conv1, batchNorm1, conv2, batchNorm2;
-export let layer1_data = [];
-export let layer2_data = [];
-export let moments_data = [];
-export let moments2_data = [];
-
+export let layer1_data;
+export let layer2_data;
+export let moments_data;
+export let moments2_data;
+export let grad;
 
 // Our actual model
 export function model(inputXs, noise=false) {
@@ -86,7 +86,8 @@ export function model(inputXs, noise=false) {
   batchNorm1 = tf.tidy(() => {
     return conv1.batchNormalization(moments.mean, moments.variance, varianceEpsilon, scale1, offset1);
   });
-  //layer1_data = layer1_data.concat(batchNorm1.dataSync());
+  layer1_data = batchNorm1.dataSync();
+  //grad = tf.grad(batchNorm1).dataSync();
 
   if (noise){
     batchNorm1 = tf.tidy(() => {
@@ -100,6 +101,12 @@ export function model(inputXs, noise=false) {
     mean: stats.mean(moments_nonTrain.mean.dataSync()),
     variance: stats.mean(moments_nonTrain.variance.dataSync())
   };
+
+  // Gradient
+  const batchNorm1g = x => tf.tidy(() => {
+    return conv1.batchNormalization(moments.mean, moments.variance, varianceEpsilon, scale1, offset1);
+  });
+  grad = tf.grad(batchNorm1g);
 
   // Conv 2
   conv2 = tf.tidy(() => {

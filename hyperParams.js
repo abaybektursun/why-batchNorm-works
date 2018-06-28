@@ -1,5 +1,5 @@
 module.exports = {
-  BATCH_SIZE: 16,
+  BATCH_SIZE: 32,
   TRAIN_STEPS: 100,
   IMAGE_SIZE: 28,
   LABELS_SIZE: 10,

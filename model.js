@@ -108,27 +108,43 @@ function create_model_BN(){http://otoro.net/kanji-rnn/
 /*-----------------------------------------------------------------------------------------------*/
 
 export async function train(model_str, data, log, LEARNING_RATE, chart_id, noise=false, subId=undefined) {
-  var model, col_accs, col_accs, col_losses;
+  var model, col_accs, col_accs, col_losses, col_meanCh, col_varCh, col_meanCh2, col_varCh2;
   var activations = [];
   switch(model_str) {
     case 'CNN':
       model = model_CNN;
-      col_losses = 'CNN Loss (LR: ' + LEARNING_RATE + ')'
-      col_accs = 'CNN Accuracy (LR: ' + LEARNING_RATE + ')'
+      col_losses = 'CNN Loss (LR: ' + LEARNING_RATE + ')';
+      col_accs = 'CNN Accuracy (LR: ' + LEARNING_RATE + ')';
+      col_meanCh = 'CNN Mean Change (LR: ' + LEARNING_RATE + ')';
+      col_varCh  = 'CNN Variance Change (LR: ' + LEARNING_RATE + ')';
+      col_meanCh2 = col_meanCh;
+      col_varCh2  = col_varCh;
       if (LEARNING_RATE === undefined){
-        LEARNING_RATE = LR
-        col_losses =  'CNN Loss'
-        col_accs = 'CNN Accuracy'
+        LEARNING_RATE = LR;
+        col_losses =  'CNN Loss';
+        col_accs = 'CNN Accuracy';
+        col_meanCh = 'CNN Mean Change';
+        col_varCh  = 'CNN Variance Change';
+        col_meanCh2 = col_meanCh;
+        col_varCh2  = col_varCh;
       }
       break;
     case 'CNN_BN':
       model = model_BN;
-      col_losses = 'CNN + BatchNorm Loss (LR: ' + LEARNING_RATE + ')'
-      col_accs = 'CNN + BatchNorm Accuracy (LR: ' + LEARNING_RATE + ')'
+      col_losses = 'CNN + BatchNorm Loss (LR: ' + LEARNING_RATE + ')';
+      col_accs = 'CNN + BatchNorm Accuracy (LR: ' + LEARNING_RATE + ')';
+      col_meanCh = 'CNN + BatchNorm Mean Change (LR: ' + LEARNING_RATE + ')';
+      col_varCh  = 'CNN + BatchNorm Variance Change (LR: ' + LEARNING_RATE + ')';
+      col_meanCh2 = col_meanCh;
+      col_varCh2  = col_varCh;
       if (LEARNING_RATE === undefined){
-        LEARNING_RATE = LR
-        col_losses =  'CNN + BatchNorm Loss'
-        col_accs = 'CNN + BatchNorm Accuracy'
+        LEARNING_RATE = LR;
+        col_losses =  'CNN + BatchNorm Loss';
+        col_accs = 'CNN + BatchNorm Accuracy';
+        col_meanCh = 'CNN + BatchNorm Mean Change';
+        col_varCh  = 'CNN + BatchNorm Variance Change';
+        col_meanCh2 = col_meanCh;
+        col_varCh2  = col_varCh;
       }
       break;
     default:
@@ -139,12 +155,22 @@ export async function train(model_str, data, log, LEARNING_RATE, chart_id, noise
   if (noise){
     col_losses += ' w/ Noise';
     col_accs += ' w/ Noise';
+    col_meanCh += ' w/ Noise';
+    col_varCh += ' w/ Noise';
+    col_meanCh2 = col_meanCh;
+    col_varCh2  = col_varCh;
   }
 
-  var losses = [col_losses];
-  var accuracies = [col_accs];
+  let losses = [col_losses];
+  let accuracies = [col_accs];
+  let meanChange = [col_meanCh];
+  let varChange = [col_varCh];
+  let meanChange2 = [col_meanCh2];
+  let varChange2 = [col_varCh2];
 
   const optimizer = tf.train.sgd(LEARNING_RATE);
+
+  let prevMean, prevVar, prevMean2, prevVar2;
 
   // Iteratively train our model on mini-batches of data.
   for (let i = 0; i < TRAIN_STEPS; i++) {
@@ -167,7 +193,7 @@ export async function train(model_str, data, log, LEARNING_RATE, chart_id, noise
     // Core Version Optimization
     const returnCost = true;
     const cost = optimizer.minimize(() => {
-      return model.loss(batch.labels, model.model(batch.xs));
+      return model.loss(batch.labels, model.model(batch.xs, noise));
     }, returnCost);
 
 
@@ -194,9 +220,9 @@ export async function train(model_str, data, log, LEARNING_RATE, chart_id, noise
   // Second Charts on train set
   else if(chart_id == '1'){
     /* Plot and test curves*/
-    const testPred = model.predict(batch.xs)
-    const loss = model.loss(batch.labels, testPred).dataSync();
-    const accuracy = tf.metrics.categoricalAccuracy(batch.labels, testPred).sum().dataSync()/BATCH_SIZE;
+    const trainPred = model.predict(batch.xs)
+    const loss = model.loss(batch.labels, trainPred).dataSync();
+    const accuracy = tf.metrics.categoricalAccuracy(batch.labels, trainPred).sum().dataSync()/BATCH_SIZE;
 
     losses.push(loss);
     accuracies.push(accuracy);
@@ -209,7 +235,61 @@ export async function train(model_str, data, log, LEARNING_RATE, chart_id, noise
         columns: [
             accuracies
         ]
+    });
+
+    if (prevMean2 === undefined)
+    {
+      //prevMean = model.moments_data.mean;
+      //prevVar = model.moments_data.variance;
+      prevMean2 = model.moments_data.mean;
+      prevVar2 = model.moments_data.variance;
+      meanChange2.push(0);
+      varChange2.push(0);
+    }
+    else{
+      // 1st layer
+      /*meanChange.push(Math.abs(prevMean - model.moments_data.mean));
+      varChange.push(Math.abs(prevVar - model.moments_data.variance));
+      vis['mean_change_'+chart_id].load({
+          columns: [
+              meanChange
+          ],
+          type: 'spline'
       });
+      vis['var_change_'+chart_id].load({
+          columns: [
+              varChange
+          ],
+          type: 'spline'
+      });*/
+
+      // 2nd layer
+      meanChange2.push(Math.abs(prevMean2 - model.moments2_data.mean));
+      varChange2.push(Math.abs(prevVar2 - model.moments2_data.variance));
+      vis['l2mean_change_'+chart_id].load({
+          columns: [
+              meanChange2
+          ],
+          type: 'spline'
+      });
+      vis['l2var_change_'+chart_id].load({
+          columns: [
+              varChange2
+          ],
+          type: 'spline'
+      });
+
+      //prevMean = model.moments_data.mean;
+      //prevVar = model.moments_data.variance;
+      prevMean2 = model.moments2_data.mean;
+      prevVar2 = model.moments2_data.variance;
+
+    }
+
+  }
+
+    // Mean and Variance change
+
 
       // Activation Distributions
       /*if(i % 90 == 0){
@@ -226,11 +306,10 @@ export async function train(model_str, data, log, LEARNING_RATE, chart_id, noise
         });
       }*/
 
-    }
 
     tf.dispose([batch, validationData]);
     await tf.nextFrame();
   }
-  console.log(activations.length);
+
   //violin.plot(chart_id+subId, activations);
 }

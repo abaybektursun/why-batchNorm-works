@@ -7,7 +7,7 @@ var stats = require("stats-lite")
 
 var $ = require('jquery');
 
-let chart_losses_0 = c3.generate({
+export let chart_losses_0 = c3.generate({
     bindto: '#chart_losses_0',
     data: {
       empty: {
@@ -18,7 +18,7 @@ let chart_losses_0 = c3.generate({
       columns: []
     }
 });
-let chart_accuracy_0 = c3.generate({
+export let chart_accuracy_0 = c3.generate({
     bindto: '#chart_accuracy_0',
     data: {
       empty: {
@@ -29,7 +29,7 @@ let chart_accuracy_0 = c3.generate({
       columns: []
     }
 });
-let chart_losses_1 = c3.generate({
+export let chart_losses_1 = c3.generate({
     bindto: '#chart_losses_1',
     data: {
       empty: {
@@ -40,7 +40,7 @@ let chart_losses_1 = c3.generate({
       columns: []
     }
 });
-let chart_accuracy_1 = c3.generate({
+export let chart_accuracy_1 = c3.generate({
     bindto: '#chart_accuracy_1',
     data: {
       empty: {
@@ -52,15 +52,63 @@ let chart_accuracy_1 = c3.generate({
     }
 });
 
+/*export let mean_change_1 = c3.generate({
+    bindto: '#meanChange_1',
+    data: {
+      empty: {
+        label: {
+          text: "Mean change between successive steps: Layer 1"
+        }
+      },
+      columns: []
+    },
+    point: {
+      show: false
+    }
+});
+export let var_change_1 = c3.generate({
+    bindto: '#varChange_1',
+    data: {
+      empty: {
+        label: {
+          text: "Variance change between successive steps: Layer 1"
+        }
+      },
+      columns: []
+    },
+    point: {
+      show: false
+    }
+});*/
 
-
-module.exports = {
-  chart_losses_0: chart_losses_0,
-  chart_accuracy_0: chart_accuracy_0,
-  chart_losses_1: chart_losses_1,
-  chart_accuracy_1: chart_accuracy_1,
-};
-
+export let l2mean_change_1 = c3.generate({
+    bindto: '#l2meanChange_1',
+    data: {
+      empty: {
+        label: {
+          text: "Mean change between successive steps"
+        }
+      },
+      columns: []
+    },
+    point: {
+      show: false
+    }
+});
+export let l2var_change_1 = c3.generate({
+    bindto: '#l2varChange_1',
+    data: {
+      empty: {
+        label: {
+          text: "Variance change between successive steps"
+        }
+      },
+      columns: []
+    },
+    point: {
+      show: false
+    }
+});
 
 /*--------------------------- Scatter plot --------------------------*/
 /*-------------------------------------------------------------------*/

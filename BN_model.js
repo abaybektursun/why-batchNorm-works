@@ -2,6 +2,7 @@ import * as tf from '@tensorflow/tfjs';
 import {Scalar, serialization, Tensor, tidy, util} from '@tensorflow/tfjs-core';
 
 import * as hparam from "./hyperParams"
+var stats = require("stats-lite")
 
 // Loss function
 export function loss(labels, ys) {
@@ -31,6 +32,9 @@ var offset2;
 var moments;
 var moments2;
 
+var moments_nonTrain;
+var moments2_nonTrain;
+
 export var train_step;
 //**************************************************************************************
 
@@ -58,6 +62,9 @@ export function freshParams(){
 export let conv1, batchNorm1, conv2, batchNorm2;
 export let layer1_data = [];
 export let layer2_data = [];
+export let moments_data = [];
+export let moments2_data = [];
+
 
 // Our actual model
 export function model(inputXs, noise=false) {
@@ -75,16 +82,24 @@ export function model(inputXs, noise=false) {
   moments = tf.tidy(() => {
     return tf.moments(conv1, [0, 1, 2]);
   });
+
   batchNorm1 = tf.tidy(() => {
     return conv1.batchNormalization(moments.mean, moments.variance, varianceEpsilon, scale1, offset1);
   });
-  layer1_data = layer1_data.concat(batchNorm1.dataSync());
+  //layer1_data = layer1_data.concat(batchNorm1.dataSync());
 
   if (noise){
     batchNorm1 = tf.tidy(() => {
-      return batchNorm1 + tf.randomNormal(batchNorm1.shape);
+      return batchNorm1.add(tf.randomNormal(batchNorm1.shape, 0.15, 0.3));
     });
   }
+  moments_nonTrain = tf.tidy(() => {
+    return tf.moments(batchNorm1, [0, 1, 2]);
+  });
+  moments_data = {
+    mean: stats.mean(moments_nonTrain.mean.dataSync()),
+    variance: stats.mean(moments_nonTrain.variance.dataSync())
+  };
 
   // Conv 2
   conv2 = tf.tidy(() => {
@@ -97,10 +112,19 @@ export function model(inputXs, noise=false) {
   moments2 = tf.tidy(() => {
     return tf.moments(conv2, [0, 1, 2]);
   });
+  moments2_data = {
+    mean: stats.mean(moments2.mean.dataSync()),
+    variance: stats.mean(moments2.variance.dataSync())
+  };
   batchNorm2 = tf.tidy(() => {
     return conv2.batchNormalization(moments2.mean, moments2.variance, varianceEpsilon, scale2, offset2);
   });
-  layer2_data = layer2_data.concat(batchNorm2.dataSync());
+  if (noise){
+    batchNorm2 = tf.tidy(() => {
+      return batchNorm2.add(tf.randomNormal(batchNorm2.shape, 0.1, 0.5));
+    });
+  }
+  //layer2_data = layer2_data.concat(batchNorm2.dataSync());
 
   // Final layer
   return batchNorm2.as2D(-1, fullyConnectedWeights.shape[0])

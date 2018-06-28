@@ -49,6 +49,15 @@ async function train1() {
   ui.done(id);
 }
 
+async function train2() {
+  var id = '2';
+  await load(id);
+  await train(undefined, id, false);
+  await train_BN(undefined, id, false);
+  ui.done(id);
+}
+
+
 
 document.getElementById('train0').addEventListener('click', function() {
   train0();
@@ -56,4 +65,8 @@ document.getElementById('train0').addEventListener('click', function() {
 
 document.getElementById('train1').addEventListener('click', function() {
   train1();
+});
+
+document.getElementById('train2').addEventListener('click', function() {
+  train2();
 });

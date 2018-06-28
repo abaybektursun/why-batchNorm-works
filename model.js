@@ -108,7 +108,7 @@ function create_model_BN(){http://otoro.net/kanji-rnn/
 /*-----------------------------------------------------------------------------------------------*/
 
 export async function train(model_str, data, log, LEARNING_RATE, chart_id, noise=false, subId=undefined) {
-  var model, col_accs, col_accs, col_losses, col_meanCh, col_varCh, col_meanCh2, col_varCh2;
+  var model, col_accs, col_accs, col_losses, col_meanCh, col_varCh, col_meanCh2, col_varCh2, col_losseLands;
   var activations = [];
   switch(model_str) {
     case 'CNN':
@@ -119,6 +119,7 @@ export async function train(model_str, data, log, LEARNING_RATE, chart_id, noise
       col_varCh  = 'CNN Variance Change (LR: ' + LEARNING_RATE + ')';
       col_meanCh2 = col_meanCh;
       col_varCh2  = col_varCh;
+      col_losseLands = "CNN ";
       if (LEARNING_RATE === undefined){
         LEARNING_RATE = LR;
         col_losses =  'CNN Loss';
@@ -162,6 +163,7 @@ export async function train(model_str, data, log, LEARNING_RATE, chart_id, noise
   }
 
   let losses = [col_losses];
+  let losseLands = [col_losseLands];
   let accuracies = [col_accs];
   let meanChange = [col_meanCh];
   let varChange = [col_varCh];
@@ -170,7 +172,7 @@ export async function train(model_str, data, log, LEARNING_RATE, chart_id, noise
 
   const optimizer = tf.train.sgd(LEARNING_RATE);
 
-  let prevMean, prevVar, prevMean2, prevVar2;
+  let prevMean, prevVar, prevMean2, prevVar2, prevLoss;
 
   // Iteratively train our model on mini-batches of data.
   for (let i = 0; i < TRAIN_STEPS; i++) {
@@ -220,7 +222,7 @@ export async function train(model_str, data, log, LEARNING_RATE, chart_id, noise
   // Second Charts on train set
   else if(chart_id == '1'){
     /* Plot and test curves*/
-    const trainPred = model.predict(batch.xs)
+    const trainPred = model.predict(batch.xs);
     const loss = model.loss(batch.labels, trainPred).dataSync();
     const accuracy = tf.metrics.categoricalAccuracy(batch.labels, trainPred).sum().dataSync()/BATCH_SIZE;
 
@@ -229,12 +231,14 @@ export async function train(model_str, data, log, LEARNING_RATE, chart_id, noise
     vis['chart_losses_'+chart_id].load({
         columns: [
             losses
-        ]
+        ],
+        type: 'spline'
     });
     vis['chart_accuracy_'+chart_id].load({
         columns: [
             accuracies
-        ]
+        ],
+        type: 'spline'
     });
 
     if (prevMean2 === undefined)
@@ -287,9 +291,20 @@ export async function train(model_str, data, log, LEARNING_RATE, chart_id, noise
     }
 
   }
+  // Loss landscape and beta-smoothness
+  else if(chart_id == '2'){
+    const trainPred = model.predict(batch.xs);
+    const loss = model.loss(batch.labels, trainPred).dataSync();
 
-    // Mean and Variance change
+    if (prevLoss === undefined){
+      prevLoss = loss;
+    }
+    else{
+      prevLoss = loss;
+    }
 
+
+  }
 
       // Activation Distributions
       /*if(i % 90 == 0){

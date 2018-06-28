@@ -52,6 +52,31 @@ export let chart_accuracy_1 = c3.generate({
     }
 });
 
+
+export let lossLand2 = c3.generate({
+    bindto: '#lossLand2',
+    data: {
+      empty: {
+        label: {
+          text: "Loss Landscape"
+        }
+      },
+      columns: []
+    }
+});
+export let betaSmooth2 = c3.generate({
+    bindto: '#betaSmooth2',
+    data: {
+      empty: {
+        label: {
+          text: "β-smoothness"
+        }
+      },
+      columns: []
+    }
+});
+
+
 /*export let mean_change_1 = c3.generate({
     bindto: '#meanChange_1',
     data: {

@@ -46,7 +46,7 @@ export let layer2_data = [];
 export let moments_data = [];
 export let moments2_data = [];
 
-// Our actual model
+// noise=false is just a hack to make the function more general, noise parameter is not used in this model
 export function model(inputXs, noise=false) {
   var xs = inputXs.as4D(-1, hparam.IMAGE_SIZE, hparam.IMAGE_SIZE, 1);
 

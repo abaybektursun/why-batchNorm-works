@@ -58,7 +58,7 @@ export let lossLand2 = c3.generate({
     data: {
       empty: {
         label: {
-          text: "Loss Landscape"
+          text: "Loss Change"
         }
       },
       columns: []
@@ -69,7 +69,7 @@ export let betaSmooth2 = c3.generate({
     data: {
       empty: {
         label: {
-          text: "β-smoothness"
+          text: "Local β"
         }
       },
       columns: []
@@ -185,6 +185,10 @@ window.onload = function() {
 	});
 };
 
+
+$('#normVar').prop('disabled', true);
+$('#subMean').prop('disabled', false);
+
 // Radmonize the Data
 document.getElementById('randomizeData').addEventListener('click', function() {
 
@@ -198,12 +202,16 @@ document.getElementById('randomizeData').addEventListener('click', function() {
 
   window.myScatter.options.title.text = 'Random Data';
 	window.myScatter.update();
+
+  $('#normVar').prop('disabled', true);
   $('#subMean').prop('disabled', false);
 
 });
 
 // Subtract Mean
 document.getElementById('subMean').addEventListener('click', function() {
+  $('#subMean').prop('disabled', true);
+  $('#normVar').prop('disabled', false);
   var xs = [];
   var ys = [];
   scatterChartData.datasets[0].data.forEach(function(point) {
@@ -228,7 +236,7 @@ document.getElementById('subMean').addEventListener('click', function() {
 
 // Scale The Variance
 document.getElementById('normVar').addEventListener('click', function() {
-  $('#subMean').prop('disabled', true);
+  $('#normVar').prop('disabled', true);
 
   var xs = [];
   var ys = [];
@@ -255,4 +263,4 @@ document.getElementById('normVar').addEventListener('click', function() {
 });
 
 
-//
+//-------------------------------------------------------------------------------

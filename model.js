@@ -204,8 +204,9 @@ export async function train(model_str, data, log, LEARNING_RATE, chart_id, noise
 
     // Core Version Optimization
     const returnCost = true;
+    const doGrad = (chart_id == '2');
     const cost = optimizer.minimize(() => {
-      return model.loss(batch.labels, model.model(batch.xs, noise));
+      return model.loss(batch.labels, model.model(batch.xs, noise, doGrad));
     }, returnCost);
 
 
@@ -309,6 +310,8 @@ export async function train(model_str, data, log, LEARNING_RATE, chart_id, noise
     if (prevLoss === undefined){
       prevLoss = loss;
       lossChanges.push(0);
+
+
     }
     else{
       lossChanges.push(Math.abs(prevLoss - loss));
@@ -356,6 +359,14 @@ export async function train(model_str, data, log, LEARNING_RATE, chart_id, noise
 
   //violin.plot(chart_id+subId, activations);
 }
+
+
+
+
+
+
+
+
 
 
 

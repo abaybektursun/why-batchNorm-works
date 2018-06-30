@@ -68,7 +68,7 @@ export let moments2_data;
 export let grad, gradl;
 
 // Our actual model
-export function model(inputXs, noise=false) {
+export function model(inputXs, noise=false, doGrad=false) {
   var xs = inputXs.as4D(-1, hparam.IMAGE_SIZE, hparam.IMAGE_SIZE, 1);
 
   // Conv 1
@@ -87,7 +87,7 @@ export function model(inputXs, noise=false) {
   batchNorm1 = tf.tidy(() => {
     return conv1.batchNormalization(moments.mean, moments.variance, varianceEpsilon, scale1, offset1);
   });
-  layer1_data = batchNorm1.dataSync();
+  layer1_data = batchNorm1.flatten().dataSync();
   //grad = tf.grad(batchNorm1).dataSync();
 
   if (noise){
@@ -131,31 +131,39 @@ export function model(inputXs, noise=false) {
 
 
   // Gradient ******************************************************************\
-  const a = 1.2
-  conv1g = x => tf.tidy(() => {
-    return batchNorm1.conv2d(conv2Weights, 1, 'same')
-        .relu()
-        .maxPool([2, 2], strides, pad)
-        .batchNormalization(moments2.mean, moments2.variance, varianceEpsilon, scale2, offset2)
-        .as2D(-1, fullyConnectedWeights.shape[0])
-        .matMul(fullyConnectedWeights)
-        .add(fullyConnectedBias);
-  });
-  grad = tf.grad(conv1g);
-  let conv1l = batchNorm1.sub(grad(batchNorm1).mul(tf.scalar(hparam.A)));
-  // Along the gradient
-  conv1gl = x => tf.tidy(() => {
-    return conv1l.conv2d(conv2Weights, 1, 'same')
-        .relu()
-        .maxPool([2, 2], strides, pad)
-        .batchNormalization(moments2.mean, moments2.variance, varianceEpsilon, scale2, offset2)
-        .as2D(-1, fullyConnectedWeights.shape[0])
-        .matMul(fullyConnectedWeights)
-        .add(fullyConnectedBias);
-  });
-  gradl = tf.grad(conv1gl);
-  beta_smoothness = tf.norm(grad(batchNorm1).sub(gradl(conv1l)))
-                    .div(tf.norm(grad(batchNorm1).mul(tf.scalar(hparam.A)))).dataSync();
+  if (doGrad){
+  let a = 0.1; let betasl = [];
+    while (a < hparam.A){
+      conv1g = x => tf.tidy(() => {
+        return batchNorm1.conv2d(conv2Weights, 1, 'same')
+            .relu()
+            .maxPool([2, 2], strides, pad)
+            .batchNormalization(moments2.mean, moments2.variance, varianceEpsilon, scale2, offset2)
+            .as2D(-1, fullyConnectedWeights.shape[0])
+            .matMul(fullyConnectedWeights)
+            .add(fullyConnectedBias);
+      });
+      grad = tf.grad(conv1g);
+      let conv1l = batchNorm1.sub(grad(batchNorm1).mul(tf.scalar(a)));
+      // Along the gradient
+      conv1gl = x => tf.tidy(() => {
+        return conv1l.conv2d(conv2Weights, 1, 'same')
+            .relu()
+            .maxPool([2, 2], strides, pad)
+            .batchNormalization(moments2.mean, moments2.variance, varianceEpsilon, scale2, offset2)
+            .as2D(-1, fullyConnectedWeights.shape[0])
+            .matMul(fullyConnectedWeights)
+            .add(fullyConnectedBias);
+      });
+      gradl = tf.grad(conv1gl);
+      betasl.push(
+        tf.norm(grad(batchNorm1).sub(gradl(conv1l)))
+          .div(tf.norm(grad(batchNorm1).mul(tf.scalar(a)))).dataSync()
+      );
+      a += 0.05;
+    }
+    beta_smoothness = Math.max(...betasl);
+  }
   //****************************************************************************\
 
   // Final layer

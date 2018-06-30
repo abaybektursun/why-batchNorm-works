@@ -1,5 +1,5 @@
 module.exports = {
-  BATCH_SIZE: 16,
+  BATCH_SIZE: 20,
   TRAIN_STEPS: 100,
   IMAGE_SIZE: 28,
   LABELS_SIZE: 10,
@@ -7,5 +7,5 @@ module.exports = {
   TEST_BATCH_SIZE: 1000,
   TEST_ITERATION_FREQUENCY: 2,
   LR: 0.3,
-  A: 2
+  A: 0.4
 };

@@ -96,7 +96,7 @@ We are going to train digit classifier using the good ol' <a href="http://yann.l
 
 
 <h3 style="text-align: left;">Error Surface</h3>
-<p style="text-align: left;"> Even before BatchNorm was mainstream, Geoffrey Hinton showed how shifting and scaling the inputs can reshape the error surface. As he explained in his <a href="https://www.youtube.com/watch?v=Xjtu1L7RwVM&list=PLoRl3Ht4JOcdU872GhiYWf6jwrk_SNhz9&index=26">Neural Netwokrs Course (Lecture 6.2 — A bag of tricks for mini batch gradient descent)</a>, centering data around zero and scaling gives each dimension similar curvature and makes the error surface more spherical as oppose to high curvature ellipse. </p>
+<p style="text-align: left;"> Even before BatchNorm was mainstream, Geoffrey Hinton showed how shifting and scaling the inputs can reshape the error surface. As he explained in his <a href="https://www.youtube.com/watch?v=Xjtu1L7RwVM&list=PLoRl3Ht4JOcdU872GhiYWf6jwrk_SNhz9&index=26">Neural Networks Course (Lecture 6.2 — A bag of tricks for mini batch gradient descent)</a>, centering data around zero and scaling gives each dimension similar curvature and makes the error surface more spherical as oppose to high curvature ellipse. </p>
 
 <div class="wp-caption aligncenter">
 	<img class="wp-image-406 alignnone" src="http://abay.tech/blog/wp-content/uploads/2018/06/bn_interp.png" alt="" width="502" height="639" />
@@ -144,7 +144,7 @@ We are going to train digit classifier using the good ol' <a href="http://yann.l
   <p class="wp-caption-text">Loss change between successive steps (left) and "effective" `\beta`-smoothness (right)</p>
 </div>
 
-<p style="text-align: left;">The local `\beta`-smoothness above is computed as follows: we pick some range `a`, and every training step we travel in that range and calculate `max_a || grad(x_t) -  grad(x_t - a * grad(x_t)) || / || a * grad(x_t) ||` where `x_t, x_l` are the points in space.</p>
+<p style="text-align: left;">The local `\beta`-smoothness above is computed as follows: we pick some range `a`, and every training step `t` we travel in that range and calculate `max_a ||  \nabla f(x_t) -  \nabla f(x_t - a * \nabla f(x_t)) || / || a * \nabla f(x_t) ||` where `\nabla f` is the gradient of the loss with respect to `x_t` - activation of convolution/BatchNorm layer.</p>
 
 <p>&nbsp;</p>
 
